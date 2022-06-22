@@ -35,7 +35,7 @@ router.post('/register', async (req, res) => {
         }
         // sign the token and send it back
         const token = jwt.sign(payload, process.env.JWT_SECRET, {expiresIn: '1d'}) //expires in one day
-        res.json(token)
+        res.json({token})
     }catch(err){
         console.warn(err)
         // handle validation errors
@@ -49,19 +49,47 @@ router.post('/register', async (req, res) => {
 })
 
 // POST /users/login -- validate login credentials
-router.post('/login', (req, res)=> {
+router.post('/login', async (req, res)=> {
+    try{
     // all the data will come in on the req.body
     // try to find the user in the database
-
+    const findUser = await db.User.findOne({
+        email: req.body.email 
+    })
     // if the user is not found, return send a status of 400. let the user know login failed
+    if(!findUser){
+        return res.status(400).json({ msg: 'user does not exist'})
+    }
+    // check if the supplied password matches the hashed password in the database
+    const password = req.body.password
 
-    // check if the supplied password matches the hased password in the database
+    const matchPasswords = await bcrypt.compare( password, findUser.password)
+    console.log(matchPasswords)
     // if they do not match return and let the user know that login has failed
+    if(!matchPasswords){
+        res.status(400).json({ msg: 'password does not match'})
+    }
 
     // create a jwt payload
+    const payload = {
+        name: findUser.name,
+        email: findUser.email,
+        id: findUser.id
+    }
     // sign the jwt and send it back
+    const token = jwt.sign(payload, process.env.JWT_SECRET, {expiresIn: '1d'})
+    res.json({token})
 
     // don't forget to handle your errors
+    }catch(err){
+        if(err.name === "ValidationError"){
+            res.status(400).json({ msg: err.message})
+        }else{
+        res.status(500).json({ msg: 'server error 500'})   
+        }
+        
+    }
+    
 })
 
 // GET /auth-locked -- checks users credentials and only send back privilaged information if the user is logged in properly
