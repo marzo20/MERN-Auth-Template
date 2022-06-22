@@ -15,6 +15,6 @@ app.get('/', (req, res) => {
 // listen on a port
 app.listen(PORT, () => {
     console.log(
-    `is the port ${PORT} that I run`
+    `is the port ${PORT} that I hear?`
     )
 })
