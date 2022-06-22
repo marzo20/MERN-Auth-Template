@@ -12,6 +12,8 @@ app.use(express.json())
 app.get('/', (req, res) => {
     res.json({ msg: 'welcome to the backend! itgood to be back'})
 })
+app.use('/api-v1/users', require('./controllers/api-v1/users'))
+
 // listen on a port
 app.listen(PORT, () => {
     console.log(
